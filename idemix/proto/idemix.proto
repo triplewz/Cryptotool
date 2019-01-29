@@ -1,0 +1,164 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+option go_package = "idemix";
+
+// The Identity Mixer protocols make use of pairings (bilinear maps) -
+// functions that can be described as e: G1 x G2 -> GT  that
+// map group elements from the source groups (G1 and G2) to the target group
+// Such groups can be represented by the points on an elliptic curve
+
+// ECP is an elliptic curve point specified by its coordinates
+// ECP corresponds to an element of the first group (G1)
+message ECP {
+	bytes X = 1;
+	bytes Y = 2;
+}
+
+// ECP2 is an elliptic curve point specified by its coordinates
+// ECP2 corresponds to an element of the second group (G2)
+message ECP2 {
+	bytes XA = 1;
+	bytes XB = 2;
+	bytes YA = 3;
+	bytes YB = 4;
+}
+
+// IssuerPublicKey specifies an issuer public key that consists of
+// AttributeNames - a list of the attribute names of a credential issued by the issuer
+// HSk, HRand, HAttrs, W, BarG1, BarG2 - group elements corresponding to the signing key, randomness, and attributes
+// ProofC, ProofS compose a zero-knowledge proof of knowledge of the secret key
+// Hash is a hash of the public key appended to it
+message IssuerPublicKey {
+	repeated string AttributeNames = 1;
+	ECP HSk = 2;
+	ECP HRand = 3;
+	repeated ECP HAttrs = 4;
+	ECP2 W = 5;
+	ECP BarG1 = 6;
+	ECP BarG2 = 7;
+	bytes ProofC = 8;
+	bytes ProofS = 9;
+	bytes Hash = 10;
+}
+
+// IssuerKey specifies an issuer key pair that consists of
+// ISk - the issuer secret key and
+// IssuerPublicKey - the issuer public key
+message IssuerKey {
+	bytes ISk = 1;
+	IssuerPublicKey IPk = 2;
+}
+
+//TracingKey specifies a group tracing key that consists of
+//TK1,TK2 - random integers
+message TracingKey {
+	bytes TK1 = 1;
+	bytes TK2 = 2;
+}
+
+//GroupPublicKey specifies a group public key that consists of
+//u,v,h - group elements corresponding to the group signing key
+message GroupPublicKey {
+	ECP U = 1;
+	ECP V = 2;
+	ECP H = 3;
+}
+
+//GroupKey specifies a group key that consists of
+//TK - group tracing key
+//GPK - group public key
+message GroupKey {
+  	TracingKey TK = 1;
+  	GroupPublicKey GPK =2;
+}
+
+//UserKey specifies a user's private key pair that consists of
+//UK1 - a random integer
+//UK2 - an element corresponding to the private key
+message UserKey {
+  	bytes UK1 = 1;
+  	ECP UK2 =2;
+}
+
+// Credential specifies a credential object that consists of
+// A, B, E, S - signature value
+// Attrs - attribute values
+message Credential {
+	ECP A = 1;
+	ECP B = 2;
+	bytes E = 3;
+	bytes S = 4;
+	repeated bytes Attrs = 5;
+}
+
+// CredRequest specifies a credential request object that consists of
+// Nym - a pseudonym, which is a commitment to the user secret
+// IssuerNonce - a random nonce provided by the issuer
+// ProofC, ProofS1, ProofS2 - a zero-knowledge proof of knowledge of the
+// user secret inside Nym
+message CredRequest {
+	ECP Nym = 1;
+	bytes IssuerNonce = 2;
+	bytes ProofC = 3;
+	bytes ProofS1 = 4;
+	bytes ProofS2 = 5;
+}
+
+// Signature specifies a signature object that consists of
+// APrime, ABar, BPrime, Proof* - randomized credential signature values
+// and a zero-knowledge proof of knowledge of a credential
+// and the corresponding user secret together with the attribute values
+// Nonce - a fresh nonce used for the signature
+// Nym - a fresh pseudonym (a commitment to to the user secert)
+// ProofSRNym - a zero-knowledge proof of knowledge of the
+// user secret inside Nym
+message Signature {
+	ECP APrime = 1;
+	ECP ABar = 2;
+	ECP BPrime = 3;
+	ECP T1 =4;
+	ECP T2 = 5;
+	ECP T3 = 6;
+	bytes ProofC = 7;
+	bytes ProofSSk = 8;
+	bytes ProofSE = 9;
+	bytes ProofSR2 = 10;
+	bytes ProofSR3 = 11;
+	bytes ProofSSPrime = 12;
+	bytes ProofSalpha = 13;
+	bytes ProofSbeta = 14;
+	bytes ProofSx = 15;
+	bytes ProofSdelta1 = 16;
+	bytes ProofSdelta2 = 17;
+	repeated bytes ProofSAttrs = 18;
+	bytes Nonce = 19;
+	ECP Nym = 20;
+	bytes ProofSRNym = 21;
+}
+
+// NymSignature specifies a signature object that signs a message
+// with respect to a pseudonym. It differs from the standard idemix.signature in the fact that
+// the  standard signature object also proves that the pseudonym is based on a secret certified by
+// a CA (issuer), whereas NymSignature only proves that the the owner of the pseudonym
+// signed the message
+message NymSignature {
+    // ProofC is the Fiat-Shamir challenge of the ZKP
+    bytes ProofC = 1;
+    // ProofSSK is the s-value proving knowledge of the user secret key
+    bytes ProofSSk = 2;
+    //ProofSRNym is the s-value proving knowledge of the pseudonym secret
+    bytes ProofSRNym = 3;
+    // Nonce is a fresh nonce used for the signature
+    bytes Nonce = 4;
+}
+
+// K specifies a user's private key that is decrypted by CA
+message K {
+	ECP Ax = 1;
+}
