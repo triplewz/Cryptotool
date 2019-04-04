@@ -1,0 +1,86 @@
+/*
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+option go_package = "bbsgroupsig";
+
+// The BBS group signature scheme make use of pairings (bilinear maps) -
+// functions that can be described as e: G1 x G2 -> GT  that
+// map group elements from the source groups (G1 and G2) to the target group
+// Such groups can be represented by the points on an elliptic curve
+
+// ECP is an elliptic curve point specified by its coordinates
+// ECP corresponds to an element of the first group (G1)
+message ECP {
+	bytes X = 1;
+	bytes Y = 2;
+}
+
+// ECP2 is an elliptic curve point specified by its coordinates
+// ECP2 corresponds to an element of the second group (G2)
+message ECP2 {
+	bytes XA = 1;
+	bytes XB = 2;
+	bytes YA = 3;
+	bytes YB = 4;
+}
+
+//GroupMasterKey specifies a group master secret key that consists of
+//gmsk - a random integer used to generate users' secret keys
+message GroupMasterKey {
+	bytes Sk = 1;
+}
+
+//TracingKey specifies a group tracing key that consists of
+//TK1,TK2 - random integers
+message TracingKey {
+	bytes TK1 = 1;
+	bytes TK2 = 2;
+}
+
+//GroupPublicKey specifies a group public key that consists of
+//u,v,h - group elements corresponding to the group signing key
+message GroupPublicKey {
+	ECP U = 1;
+	ECP V = 2;
+	ECP H = 3;
+	ECP2 W = 4;
+}
+
+//GroupKey specifies a group key that consists of
+//TK - group tracing key
+//GPK - group public key
+message GroupKey {
+    GroupMasterKey gmsk = 1;
+  	TracingKey TK = 2;
+  	GroupPublicKey GPK =3;
+}
+
+//UserKey specifies a user's private key pair that consists of
+//UK1 - a random integer
+//UK2 - an element corresponding to the private key
+message UserKey {
+  	bytes UK1 = 1;
+  	ECP UK2 =2;
+}
+
+// Signature specifies a signature object that consists of
+// and the corresponding user secret together with the attribute values
+message GroupSignature {
+	ECP T1 = 1;
+	ECP T2 = 2;
+	ECP T3 = 3;
+	bytes ProofC = 4;
+	bytes ProofSalpha = 5;
+	bytes ProofSbeta = 6;
+	bytes ProofSx = 7;
+	bytes ProofSdelta1 = 8;
+	bytes ProofSdelta2 = 9;
+}
+
+// K specifies a user's private key that is decrypted by CA
+message K {
+	ECP Ax = 1;
+}

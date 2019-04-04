@@ -2,15 +2,15 @@
 borromean ring signatures.
 */
 
-package rangeproof
+package mpringsig
 
 import (
 	"crypto/rand"
 	"crypto/sha256"
 
-	"github.com/milagro-crypto/amcl/version3/go/amcl"
-	"github.com/milagro-crypto/amcl/version3/go/amcl/SECP256K1"
 	"github.com/pkg/errors"
+	"github.com/milagro-crypto/amcl/version3/go/amcl/SECP256K1"
+	"github.com/milagro-crypto/amcl/version3/go/amcl"
 )
 
 // GenG1 is a generator of Group G1
