@@ -1,5 +1,5 @@
 # Cryptotool
-cryptotool库基于fabric-amcl密码库实现，采用BN256曲线参数，包括群签名、环签名等匿名隐私保护算法。<br>
+cryptotool库基于amcl密码库实现，采用BN256、SECP256K1曲线参数，包括群签名、环签名等匿名隐私保护算法。<br>
 # 算法
 1.borromean环签名算法，多个环聚合形成一个环的环签名算法。<br>
 2.BBS群签名算法，短群签名方案。<br>
