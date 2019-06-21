@@ -1,14 +1,13 @@
 package mpringsig
 
 import (
-	"github.com/pkg/errors"
 	"github.com/milagro-crypto/amcl/version3/go/amcl/SECP256K1"
 )
 
 //环签名验证
-func RingSigVerfy(ringSig *RingSig, signPubKey *RingPK,m []byte) error {
+func RingSigVerfy(ringSig *RingSig, signPubKey *RingPK,m []byte) bool {
 	if ringSig == nil || signPubKey == nil {
-		return errors.Errorf("环签名格式错误")
+		return false
 	}
 
 	hashValuePrime := new(HashValue)
@@ -40,8 +39,8 @@ func RingSigVerfy(ringSig *RingSig, signPubKey *RingPK,m []byte) error {
 
 	//验证E_0'=E_0是否成立
 	if *e_0 != *SECP256K1.FromBytes(ringSig.E_0){
-		return errors.Errorf("签名无效")
+		return false
 	}
 
-	return nil
+	return true
 }

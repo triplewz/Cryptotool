@@ -2,11 +2,10 @@ package rangeproof
 
 import (
 	"github.com/milagro-crypto/amcl/version3/go/amcl/SECP256K1"
-	"github.com/pkg/errors"
 )
 
 //验证rangeproof（v是否属于[0,2^32-1]）
-func Verify(proof *Proof) error{
+func Verify(proof *Proof) bool {
 	R := new(HashR)
 	e_0 := SECP256K1.FromBytes(proof.E_0)
 	H := EcpFromProto(proof.H)
@@ -17,7 +16,8 @@ func Verify(proof *Proof) error{
 		C_i := EcpFromProto(proof.Com[i])
 		C_i.Sub(jmiH)
 		temp1 := C_i.Mul(e_0)
-		Gs := GenG1.Mul(SECP256K1.FromBytes(proof.S[i]))
+		si := SECP256K1.FromBytes(proof.S[i])
+		Gs := Gen1.Mul(si)
 		Gs.Sub(temp1)
 		hashData1 := make([]byte,2*FieldBytes+1)
 		index1 := 0
@@ -36,9 +36,9 @@ func Verify(proof *Proof) error{
 	e_0_Prime := HashModOrder(hashData2)
 
 	//判断e_0 == e_0'是否成立
-	if *e_0 == *e_0_Prime {
-		return errors.Errorf("rangeproof验证不通过！")
+	if *e_0 != *e_0_Prime {
+		return false
 	}
 
-	return nil
+	return true
 }

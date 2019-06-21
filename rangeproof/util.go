@@ -14,9 +14,12 @@ import (
 )
 
 // GenG1 is a generator of Group G1
-var GenG1 = SECP256K1.NewECPbigs(
+var Gen1 = SECP256K1.NewECPbigs(
 	SECP256K1.NewBIGints(SECP256K1.CURVE_Gx),
 	SECP256K1.NewBIGints(SECP256K1.CURVE_Gy))
+
+//Gen2 is a generator of Group G1
+var Gen2 = SECP256K1.ECP_generator()
 
 // GroupOrder is the order of the groups
 var GroupOrder = SECP256K1.NewBIGints(SECP256K1.CURVE_Order)

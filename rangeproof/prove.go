@@ -6,9 +6,9 @@ http://fc17.ifca.ai/bitcoin/papers/bitcoin17-final41.pdf
 package rangeproof
 
 import (
+	"github.com/milagro-crypto/amcl/version3/go/amcl"
 	"github.com/milagro-crypto/amcl/version3/go/amcl/SECP256K1"
 	"github.com/pkg/errors"
-	"github.com/milagro-crypto/amcl/version3/go/amcl"
 )
 
 const Size  int= 32
@@ -44,27 +44,6 @@ type Proof struct {
 	H      *ECP
 }
 
-/*将v转化为长度为32位的二进制形式的string数组
-func ValueToVector(value int) []string {
-	var valueVector []string
-	var valueTuple []string
-	valueStr := strconv.FormatInt(int64(value),2)
-	str := []byte(valueStr)
-	for _, s := range str {
-		valueTuple = append(valueTuple, string(s))
-	}
-
-	//若valueTuple长度小于32，则将其扩充为32位的string数组
-	if len(valueVector) < Size {
-		for i := 0; i < Size - len(valueTuple); i++ {
-			valueVector = append(valueVector,"0")
-		}
-	}
-	valueVector = append(valueVector,valueTuple...)
-	return valueVector
-}
-*/
-
 //指数运算
 func Pow(base int, exp int) int {
 	res := base
@@ -97,7 +76,7 @@ func NewProof(value int, rng *amcl.RAND) (*Proof,error){
 	randm := new(Randm)
 
 	//生成元H
-	H := SECP256K1.ECP_generator()
+	H := Gen2
 	rangeProof.H = EcpToProto(H)
 
 	e.E = make([][]*SECP256K1.BIG,Size)
@@ -108,7 +87,7 @@ func NewProof(value int, rng *amcl.RAND) (*Proof,error){
 		//v_i=0，计算k_i0,R_i
 		if (value & (0x1 << uint(i)) >> uint(i)) == 0 {
 			k_i0 := RandModOrder(rng)
-			R_i := GenG1.Mul(k_i0)
+			R_i := Gen1.Mul(k_i0)
 			k.K = append(k.K,k_i0)
 			R.R = append(R.R,R_i)
 			randm.Rand = append(randm.Rand,k_i0)
@@ -119,7 +98,7 @@ func NewProof(value int, rng *amcl.RAND) (*Proof,error){
 			//计算C_i = Com(v_i*m^i,r_i)=v_i*m^i·H+r_i·G
 			r_i := RandModOrder(rng)
 			randm.Rand = append(randm.Rand,r_i)
-			C_i := GenG1.Mul(r_i)
+			C_i := Gen1.Mul(r_i)
 			jmiH := J_mi_H(H,1,2,i)
 			C_i.Add(jmiH)
 			rangeProof.Com[i] = EcpToProto(C_i)
@@ -129,7 +108,7 @@ func NewProof(value int, rng *amcl.RAND) (*Proof,error){
 			k.K = append(k.K,k_i)
 			hashK_i := make([]byte,2*FieldBytes+1)
 			index1 := 0
-			index1 = appendBytesG1(hashK_i,index1,GenG1.Mul(k_i))
+			index1 = appendBytesG1(hashK_i,index1,Gen1.Mul(k_i))
 			e_i1 := HashModOrder(hashK_i)
 			e.E[i][1] = e_i1
 
@@ -160,7 +139,7 @@ func NewProof(value int, rng *amcl.RAND) (*Proof,error){
 			k_ij := RandModOrder(rng)
 			//计算e_i1=H(k_ij·G+e_ij-1*m^i*j·H)
 			HashData3 := make([]byte,2*FieldBytes+1)
-			Gk := GenG1.Mul(k_ij)
+			Gk := Gen1.Mul(k_ij)
 			jmiH := J_mi_H(H,1,2,i)
 			e_H := jmiH.Mul(e.E[i][0])
 			Gk.Add(e_H)
@@ -179,6 +158,7 @@ func NewProof(value int, rng *amcl.RAND) (*Proof,error){
 			temp1 := SECP256K1.Modmul(k.K[i],e.E[i][0],GroupOrder)
 			temp2 := SECP256K1.Modmul(temp1,inverE,GroupOrder)
 			s_i1 := k_ij.Plus(temp2)
+			s_i1.Mod(GroupOrder)
 			rangeProof.S = append(rangeProof.S,BigToBytes(s_i1))
 		}
 
@@ -186,6 +166,7 @@ func NewProof(value int, rng *amcl.RAND) (*Proof,error){
 		if (value & (0x1 << uint(i)) >> uint(i)) == 1 {
 			temp3 := SECP256K1.Modmul(e.E[i][0],randm.Rand[i],GroupOrder)
 			s_i1 := k.K[i].Plus(temp3)
+			s_i1.Mod(GroupOrder)
 			rangeProof.S = append(rangeProof.S,BigToBytes(s_i1))
 		}
 	}
