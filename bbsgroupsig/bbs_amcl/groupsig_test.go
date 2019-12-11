@@ -1,6 +1,7 @@
 package bbsgroupsig
 
 import (
+	"github.com/milagro-crypto/amcl/version3/go/amcl"
 	"testing"
 	"time"
 )
@@ -84,4 +85,27 @@ func TestGroupSig(t *testing.T)  {
 	phase5 := time.Since(t5)
 	println("Tracing takes:", phase5/1e6,"ms")
 
+}
+
+func BenchmarkNewGroupSig(b *testing.B) {
+	rng := amcl.NewRAND()
+	groupKey, _ := NewGroupKey(rng)
+	userKey, _ := Registration(groupKey.Gmsk,rng)
+	message := []byte{0,1,2,3,4,5}
+
+	for i:=0;i<b.N;i++ {
+		_, _ = NewGroupSig(rng,groupKey.GPK,userKey,message)
+	}
+}
+
+func BenchmarkGroupVerify(b *testing.B) {
+	rng := amcl.NewRAND()
+	groupKey, _ := NewGroupKey(rng)
+	userKey, _ := Registration(groupKey.Gmsk,rng)
+	message := []byte{0,1,2,3,4,5}
+	groupsig, _ := NewGroupSig(rng,groupKey.GPK,userKey,message)
+
+	for i:=0;i<b.N;i++ {
+		_ = GroupVerify(groupsig,groupKey.GPK,message)
+	}
 }
