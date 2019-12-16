@@ -3,7 +3,7 @@ package bbsgroupsig
 import (
 	"math/big"
 	"github.com/cloudflare/bn256"
-	"cryptogm/sm/sm3"
+	"github.com/triplewz/Cryptotool/cryptogm/sm3"
 )
 
 //hash a byte array to a big int.
